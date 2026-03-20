@@ -5,7 +5,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { parseData } from './data';
-import { ArrowUp, ArrowDown, X, ChevronDown } from 'lucide-react';
+import { ArrowUp, ArrowDown, ChevronDown } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -66,7 +66,7 @@ export default function App() {
                 <p>
                   Cập nhật lúc: {products[0]?.history[products[0].history.length - 1]?.time} ngày {products[0]?.history[products[0].history.length - 1]?.date}
                 </p>
-                <p>Đơn vị: VNĐ</p>
+                <p>Đơn vị: VND</p>
               </div>
             </div>
 
@@ -148,9 +148,6 @@ export default function App() {
                   </div>
                 )}
               </div>
-              <button className="p-1.5 border border-[#e5e5e5] rounded text-[#999] hover:bg-gray-50 transition-colors">
-                <X className="w-4 h-4" />
-              </button>
             </div>
           </div>
 
