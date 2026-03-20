@@ -27,6 +27,12 @@ function formatChange(change: number) {
   return formatted;
 }
 
+function formatDate(dateString: string | undefined) {
+  if (!dateString) return '';
+  const [day, month, year] = dateString.split('/');
+  return `${parseInt(day, 10)}/${parseInt(month, 10)}/${year}`;
+}
+
 export default function App() {
   const products = useMemo(() => parseData(), []);
   const targetProduct = useMemo(() => products.find(p => p.name === 'Bạc miếng Phú Quý 999 1 lượng'), [products]);
@@ -46,10 +52,10 @@ export default function App() {
   }, [targetProduct, timeRange]);
 
   const timeRangeLabels = {
-    '7D': '7 ngày gần nhất',
-    '1M': '1 tháng gần nhất',
-    '3M': '3 tháng gần nhất',
-    '1Y': '1 năm gần nhất'
+    '7D': '7 ngày',
+    '1M': '1 tháng',
+    '3M': '3 tháng',
+    '1Y': '1 năm'
   };
 
   return (
@@ -64,7 +70,7 @@ export default function App() {
               <h1 className="text-3xl font-bold mb-2 text-[#222]">Giá bạc hôm nay</h1>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[14px] text-[#757575] gap-2">
                 <p>
-                  Cập nhật lúc: {products[0]?.history[products[0].history.length - 1]?.time} ngày {products[0]?.history[products[0].history.length - 1]?.date}
+                  Cập nhật lúc: {products[0]?.history[products[0].history.length - 1]?.time} ngày {formatDate(products[0]?.history[products[0].history.length - 1]?.date)}
                 </p>
                 <p>Đơn vị: VND</p>
               </div>
@@ -204,7 +210,7 @@ export default function App() {
           {/* Footer */}
           <div className="relative flex flex-col sm:flex-row items-center p-4 md:px-6 md:py-4 border-t border-[#e5e5e5] mt-4">
             <div className="text-[13px] text-[#999] italic mb-4 sm:mb-0 sm:absolute sm:left-6">
-              Dữ liệu cập nhật: {targetProduct.history[targetProduct.history.length - 1]?.date}/2026
+              Dữ liệu cập nhật: {formatDate(targetProduct.history[targetProduct.history.length - 1]?.date)}
             </div>
             <div className="flex items-center justify-center w-full gap-8">
               <div className="flex items-center gap-2">
