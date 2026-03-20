@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { parseData } from './data';
-import { ArrowUp, ArrowDown, X } from 'lucide-react';
+import { ArrowUp, ArrowDown, X, ChevronDown } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -30,6 +30,27 @@ function formatChange(change: number) {
 export default function App() {
   const products = useMemo(() => parseData(), []);
   const targetProduct = useMemo(() => products.find(p => p.name === 'Bạc miếng Phú Quý 999 1 lượng'), [products]);
+  const [timeRange, setTimeRange] = useState<'7D' | '1M' | '3M' | '1Y'>('7D');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const filteredHistory = useMemo(() => {
+    if (!targetProduct) return [];
+    const history = targetProduct.history;
+    switch (timeRange) {
+      case '7D': return history.slice(-7);
+      case '1M': return history.slice(-30);
+      case '3M': return history.slice(-90);
+      case '1Y': return history.slice(-365);
+      default: return history;
+    }
+  }, [targetProduct, timeRange]);
+
+  const timeRangeLabels = {
+    '7D': '7 ngày gần nhất',
+    '1M': '1 tháng gần nhất',
+    '3M': '3 tháng gần nhất',
+    '1Y': '1 năm gần nhất'
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-white" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
@@ -100,11 +121,33 @@ export default function App() {
         <div className="border border-[#e5e5e5] rounded shadow-sm mb-8 bg-white">
           {/* Header */}
           <div className="flex items-center justify-between p-4 md:px-6 md:py-4 border-b border-[#e5e5e5]">
-            <h2 className="text-xl font-bold text-[#222]">{targetProduct.name}</h2>
+            <h2 className="text-xl font-bold text-[#222]">Biểu đồ giá bạc</h2>
             <div className="flex items-center gap-2">
-              <button className="px-3 py-1.5 border border-[#e5e5e5] rounded text-sm font-medium text-[#444] hover:bg-gray-50 transition-colors">
-                7 ngày gần nhất
-              </button>
+              <div className="relative">
+                <button 
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="px-3 py-1.5 border border-[#e5e5e5] rounded text-sm font-medium text-[#444] hover:bg-gray-50 transition-colors flex items-center gap-1"
+                >
+                  {timeRangeLabels[timeRange]}
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-1 w-40 bg-white border border-[#e5e5e5] rounded shadow-lg z-10">
+                    {(Object.entries(timeRangeLabels) as [keyof typeof timeRangeLabels, string][]).map(([key, label]) => (
+                      <button
+                        key={key}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${timeRange === key ? 'font-bold text-[#a01b3f]' : 'text-[#444]'}`}
+                        onClick={() => {
+                          setTimeRange(key);
+                          setIsDropdownOpen(false);
+                        }}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               <button className="p-1.5 border border-[#e5e5e5] rounded text-[#999] hover:bg-gray-50 transition-colors">
                 <X className="w-4 h-4" />
               </button>
@@ -114,7 +157,7 @@ export default function App() {
           {/* Chart */}
           <div className="h-[360px] w-full p-4 md:p-6 pb-0">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={targetProduct.history} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
+              <LineChart data={filteredHistory} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#f0f0f0" />
                 <XAxis 
                   dataKey="date" 
