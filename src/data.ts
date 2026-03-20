@@ -115,5 +115,5 @@ export function parseData(): Product[] {
     }
   }
 
-  return products;
+  return products.filter(p => p.name !== 'Đồng bạc mỹ nghệ Phú Quý 999');
 }

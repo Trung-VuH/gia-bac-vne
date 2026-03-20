@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { parseData } from './data';
-import { ArrowUp, ArrowDown, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowUp, ArrowDown, X } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -29,11 +29,7 @@ function formatChange(change: number) {
 
 export default function App() {
   const products = useMemo(() => parseData(), []);
-  const [expandedRow, setExpandedRow] = useState<string | null>(null);
-
-  const toggleRow = (id: string) => {
-    setExpandedRow(expandedRow === id ? null : id);
-  };
+  const targetProduct = useMemo(() => products.find(p => p.name === 'Bạc miếng Phú Quý 999 1 lượng'), [products]);
 
   return (
     <div className="min-h-screen flex flex-col bg-white" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
@@ -49,7 +45,7 @@ export default function App() {
                 <p>
                   Cập nhật lúc: {products[0]?.history[products[0].history.length - 1]?.time} ngày {products[0]?.history[products[0].history.length - 1]?.date}
                 </p>
-                <p>Đơn vị: Vnđ/Lượng</p>
+                <p>Đơn vị: VNĐ</p>
               </div>
             </div>
 
@@ -65,25 +61,11 @@ export default function App() {
           <tbody>
             {products.map((product) => (
               <React.Fragment key={product.id}>
-                <tr 
-                  className={cn(
-                    "border-b border-[#e5e5e5] hover:bg-[#fcfcfc] cursor-pointer transition-colors",
-                    expandedRow === product.id && "bg-[#fcfcfc]"
-                  )}
-                  onClick={() => toggleRow(product.id)}
-                >
+                <tr className="border-b border-[#e5e5e5] hover:bg-[#fcfcfc] transition-colors">
                   <td className="py-4 px-4 font-bold text-[#222] flex items-center justify-between">
                     <div className="flex flex-col">
                       <span>{product.name}</span>
-                      {product.name.toLowerCase().includes('1kilo') && (
-                        <span className="text-[12px] font-normal text-[#757575] mt-0.5">Vnđ/Kg</span>
-                      )}
                     </div>
-                    {expandedRow === product.id ? (
-                      <ChevronUp className="w-4 h-4 text-[#999]" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 text-[#999]" />
-                    )}
                   </td>
                   <td className="py-4 px-4 text-right">
                     <div className="font-bold text-[#222]">{formatPrice(product.currentBuy)}</div>
@@ -108,66 +90,95 @@ export default function App() {
                     </div>
                   </td>
                 </tr>
-                {expandedRow === product.id && (
-                  <tr className="bg-[#fcfcfc] border-b border-[#e5e5e5]">
-                    <td colSpan={3} className="p-4 md:p-6">
-                      <div className="h-[340px] w-full pb-4">
-                        <h3 className="text-[15px] font-bold mb-4 text-center text-[#222]">Biểu đồ giá {product.name}</h3>
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={product.history} margin={{ top: 5, right: 20, bottom: 20, left: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e5e5" />
-                            <XAxis 
-                              dataKey="date" 
-                              tickFormatter={(val) => val.substring(0, 5)}
-                              tick={{ fontSize: 12, fill: '#757575' }} 
-                              tickMargin={10}
-                              axisLine={false}
-                              tickLine={false}
-                              minTickGap={20}
-                            />
-                            <YAxis 
-                              tickFormatter={(value) => new Intl.NumberFormat('vi-VN', { notation: "compact", compactDisplay: "short" }).format(value)}
-                              tick={{ fontSize: 12, fill: '#757575' }}
-                              axisLine={false}
-                              tickLine={false}
-                              domain={['auto', 'auto']}
-                              width={60}
-                            />
-                            <Tooltip 
-                              formatter={(value: number) => [formatPrice(value) + ' ₫', '']}
-                              labelFormatter={(label) => `Ngày: ${label}`}
-                              contentStyle={{ borderRadius: '4px', border: '1px solid #e5e5e5', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', fontSize: '13px' }}
-                            />
-                            <Legend wrapperStyle={{ fontSize: '13px', paddingTop: '10px' }} />
-                            <Line 
-                              type="monotone" 
-                              dataKey="buy" 
-                              name="Mua vào" 
-                              stroke="#076bce" 
-                              strokeWidth={2} 
-                              dot={{ r: 3, fill: '#076bce', strokeWidth: 0 }} 
-                              activeDot={{ r: 5 }} 
-                            />
-                            <Line 
-                              type="monotone" 
-                              dataKey="sell" 
-                              name="Bán ra" 
-                              stroke="#e53935" 
-                              strokeWidth={2} 
-                              dot={{ r: 3, fill: '#e53935', strokeWidth: 0 }} 
-                              activeDot={{ r: 5 }} 
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </td>
-                  </tr>
-                )}
               </React.Fragment>
             ))}
           </tbody>
         </table>
       </div>
+
+      {targetProduct && (
+        <div className="border border-[#e5e5e5] rounded shadow-sm mb-8 bg-white">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 md:px-6 md:py-4 border-b border-[#e5e5e5]">
+            <h2 className="text-xl font-bold text-[#222]">{targetProduct.name}</h2>
+            <div className="flex items-center gap-2">
+              <button className="px-3 py-1.5 border border-[#e5e5e5] rounded text-sm font-medium text-[#444] hover:bg-gray-50 transition-colors">
+                7 ngày gần nhất
+              </button>
+              <button className="p-1.5 border border-[#e5e5e5] rounded text-[#999] hover:bg-gray-50 transition-colors">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Chart */}
+          <div className="h-[360px] w-full p-4 md:p-6 pb-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={targetProduct.history} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#f0f0f0" />
+                <XAxis 
+                  dataKey="date" 
+                  tickFormatter={(val) => val.substring(0, 5)}
+                  tick={{ fontSize: 12, fill: '#999' }} 
+                  tickMargin={12}
+                  axisLine={{ stroke: '#e5e5e5' }}
+                  tickLine={false}
+                  minTickGap={20}
+                />
+                <YAxis 
+                  tickFormatter={(value) => new Intl.NumberFormat('vi-VN', { notation: "compact", compactDisplay: "short" }).format(value)}
+                  tick={{ fontSize: 12, fill: '#999' }}
+                  axisLine={false}
+                  tickLine={false}
+                  domain={['auto', 'auto']}
+                  width={60}
+                />
+                <Tooltip 
+                  formatter={(value: number, name: string) => [formatPrice(value) + ' ₫', name === 'sell' ? 'Giá bán' : 'Giá mua']}
+                  labelFormatter={(label) => `Ngày: ${label}`}
+                  contentStyle={{ borderRadius: '4px', border: '1px solid #e5e5e5', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', fontSize: '13px' }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="sell" 
+                  name="sell" 
+                  stroke="#a01b3f" 
+                  strokeWidth={2.5} 
+                  dot={false} 
+                  activeDot={{ r: 5, fill: '#a01b3f', strokeWidth: 0 }} 
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="buy" 
+                  name="buy" 
+                  stroke="#899ab5" 
+                  strokeWidth={2} 
+                  strokeDasharray="5 5"
+                  dot={false} 
+                  activeDot={{ r: 5, fill: '#899ab5', strokeWidth: 0 }} 
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Footer */}
+          <div className="relative flex flex-col sm:flex-row items-center p-4 md:px-6 md:py-4 border-t border-[#e5e5e5] mt-4">
+            <div className="text-[13px] text-[#999] italic mb-4 sm:mb-0 sm:absolute sm:left-6">
+              Dữ liệu cập nhật: {targetProduct.history[targetProduct.history.length - 1]?.date}/2026
+            </div>
+            <div className="flex items-center justify-center w-full gap-8">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-[2.5px] bg-[#a01b3f]"></div>
+                <span className="text-[14px] font-bold text-[#222]">Giá bán</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-[2px] border-t-2 border-dashed border-[#899ab5]"></div>
+                <span className="text-[14px] font-bold text-[#222]">Giá mua</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
             <News />
           </div>
